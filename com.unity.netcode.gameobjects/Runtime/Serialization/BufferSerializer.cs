@@ -33,7 +33,7 @@ namespace Unity.Netcode
         /// </summary>
         public bool IsWriter => m_Implementation.IsWriter;
 
-        internal BufferSerializer(TReaderWriter implementation)
+        public BufferSerializer(TReaderWriter implementation)
         {
             m_Implementation = implementation;
         }
