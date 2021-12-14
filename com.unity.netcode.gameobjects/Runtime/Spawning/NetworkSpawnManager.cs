@@ -242,6 +242,10 @@ namespace Unity.Netcode
                 networkClient.OwnedObjects.Add(networkObject);
             }
 
+            if (TryGetNetworkClient(networkObject.OwnerClientId, out NetworkClient newNetworkClient)) {
+                newNetworkClient.OwnedObjects.Add(networkObject);
+            }
+
             networkObject.OwnerClientId = clientId;
 
 
