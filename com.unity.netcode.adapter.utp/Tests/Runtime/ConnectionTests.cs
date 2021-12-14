@@ -1,3 +1,5 @@
+// todo @simon-lemay-unity: un-guard/re-enable after validating UTP on consoles
+#if UNITY_EDITOR || UNITY_STANDALONE || UNITY_IOS || UNITY_ANDROID
 using NUnit.Framework;
 using System.Collections;
 using System.Collections.Generic;
@@ -17,6 +19,23 @@ namespace Unity.Netcode.RuntimeTests
         private List<TransportEvent> m_ServerEvents;
         private List<TransportEvent>[] m_ClientsEvents = new List<TransportEvent>[k_NumClients];
 
+        private IEnumerator WaitForAllClientsConnected()
+        {
+            for (int i = 0; i < k_NumClients; i++)
+            {
+                if (m_ClientsEvents[i].Count == 0)
+                {
+                    yield return WaitForNetworkEvent(NetworkEvent.Connect, m_ClientsEvents[i]);
+                }
+            }
+
+            // Check that all clients received the correct event.
+            Assert.That(m_ClientsEvents.All(evs => evs[0].Type == NetworkEvent.Connect));
+
+            // Check that server received all Connect events.
+            Assert.AreEqual(k_NumClients, m_ServerEvents.Count);
+        }
+
         [UnityTearDown]
         public IEnumerator Cleanup()
         {
@@ -25,7 +44,9 @@ namespace Unity.Netcode.RuntimeTests
             if (m_Server)
             {
                 m_Server.Shutdown();
-                Object.DestroyImmediate(m_Server);
+
+                // Need to destroy the GameObject (all assigned components will get destroyed too)
+                Object.DestroyImmediate(m_Server.gameObject);
             }
 
             foreach (var transport in m_Clients)
@@ -33,7 +54,9 @@ namespace Unity.Netcode.RuntimeTests
                 if (transport)
                 {
                     transport.Shutdown();
-                    Object.DestroyImmediate(transport);
+
+                    // Need to destroy the GameObject (all assigned components will get destroyed too)
+                    Object.DestroyImmediate(transport.gameObject);
                 }
             }
 
@@ -56,11 +79,11 @@ namespace Unity.Netcode.RuntimeTests
             m_Server.StartServer();
             m_Clients[0].StartClient();
 
-            yield return WaitForNetworkEvent(NetworkEvent.Connect, m_ServerEvents);
+            yield return WaitForNetworkEvent(NetworkEvent.Connect, m_ClientsEvents[0]);
 
-            // Check we've received Connect event on client too.
-            Assert.AreEqual(1, m_ClientsEvents[0].Count);
-            Assert.AreEqual(NetworkEvent.Connect, m_ClientsEvents[0][0].Type);
+            // Check we've received Connect event on server too.
+            Assert.AreEqual(1, m_ServerEvents.Count);
+            Assert.AreEqual(NetworkEvent.Connect, m_ServerEvents[0].Type);
 
             yield return null;
         }
@@ -79,11 +102,7 @@ namespace Unity.Netcode.RuntimeTests
                 m_Clients[i].StartClient();
             }
 
-            yield return WaitForNetworkEvent(NetworkEvent.Connect, m_ServerEvents);
-
-            // Check that every client also received a Connect event.
-            Assert.True(m_ClientsEvents.All(evs => evs.Count == 1));
-            Assert.True(m_ClientsEvents.All(evs => evs[0].Type == NetworkEvent.Connect));
+            yield return WaitForAllClientsConnected();
 
             yield return null;
         }
@@ -98,7 +117,7 @@ namespace Unity.Netcode.RuntimeTests
             m_Server.StartServer();
             m_Clients[0].StartClient();
 
-            yield return WaitForNetworkEvent(NetworkEvent.Connect, m_ServerEvents);
+            yield return WaitForNetworkEvent(NetworkEvent.Connect, m_ClientsEvents[0]);
 
             m_Server.DisconnectRemoteClient(m_ServerEvents[0].ClientID);
 
@@ -120,7 +139,7 @@ namespace Unity.Netcode.RuntimeTests
                 m_Clients[i].StartClient();
             }
 
-            yield return WaitForNetworkEvent(NetworkEvent.Connect, m_ServerEvents);
+            yield return WaitForAllClientsConnected();
 
             // Disconnect a single client.
             m_Server.DisconnectRemoteClient(m_ServerEvents[0].ClientID);
@@ -141,8 +160,8 @@ namespace Unity.Netcode.RuntimeTests
             yield return new WaitForSeconds(MaxNetworkEventWaitTime);
 
             // Check that all clients got a Disconnect event.
-            Assert.True(m_ClientsEvents.All(evs => evs.Count == 2));
-            Assert.True(m_ClientsEvents.All(evs => evs[1].Type == NetworkEvent.Disconnect));
+            Assert.That(m_ClientsEvents.All(evs => evs.Count == 2));
+            Assert.That(m_ClientsEvents.All(evs => evs[1].Type == NetworkEvent.Disconnect));
 
             yield return null;
         }
@@ -157,7 +176,7 @@ namespace Unity.Netcode.RuntimeTests
             m_Server.StartServer();
             m_Clients[0].StartClient();
 
-            yield return WaitForNetworkEvent(NetworkEvent.Connect, m_ServerEvents);
+            yield return WaitForNetworkEvent(NetworkEvent.Connect, m_ClientsEvents[0]);
 
             m_Clients[0].DisconnectLocalClient();
 
@@ -177,7 +196,7 @@ namespace Unity.Netcode.RuntimeTests
                 m_Clients[i].StartClient();
             }
 
-            yield return WaitForNetworkEvent(NetworkEvent.Connect, m_ServerEvents);
+            yield return WaitForAllClientsConnected();
 
             // Disconnect a single client.
             m_Clients[0].DisconnectLocalClient();
@@ -209,7 +228,7 @@ namespace Unity.Netcode.RuntimeTests
             m_Server.StartServer();
             m_Clients[0].StartClient();
 
-            yield return WaitForNetworkEvent(NetworkEvent.Connect, m_ServerEvents);
+            yield return WaitForNetworkEvent(NetworkEvent.Connect, m_ClientsEvents[0]);
 
             m_Server.DisconnectRemoteClient(m_ServerEvents[0].ClientID);
 
@@ -241,7 +260,7 @@ namespace Unity.Netcode.RuntimeTests
             m_Server.StartServer();
             m_Clients[0].StartClient();
 
-            yield return WaitForNetworkEvent(NetworkEvent.Connect, m_ServerEvents);
+            yield return WaitForNetworkEvent(NetworkEvent.Connect, m_ClientsEvents[0]);
 
             m_Clients[0].DisconnectLocalClient();
 
@@ -263,3 +282,4 @@ namespace Unity.Netcode.RuntimeTests
         }
     }
 }
+#endif

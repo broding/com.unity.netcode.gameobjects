@@ -145,7 +145,7 @@ namespace Unity.Netcode
         /// <summary>
         /// Whether or not to enable Snapshot System for spawn and despawn commands. Not supported in this version.
         /// </summary>
-        public bool UseSnapshotSpawn { get; internal set; } = false;
+        public bool UseSnapshotSpawn { get; internal set; } = true;
         /// <summary>
         /// When Snapshot System spawn is enabled: max size of Snapshot Messages. Meant to fit MTU.
         /// </summary>
@@ -224,7 +224,7 @@ namespace Unity.Netcode
                 return m_ConfigHash.Value;
             }
 
-            var writer = new FastBufferWriter(MessagingSystem.NON_FRAGMENTED_MESSAGE_MAX_SIZE, Allocator.Temp);
+            var writer = new FastBufferWriter(MessagingSystem.NON_FRAGMENTED_MESSAGE_MAX_SIZE, Allocator.Temp, int.MaxValue);
             using (writer)
             {
                 writer.WriteValueSafe(ProtocolVersion);
@@ -239,6 +239,8 @@ namespace Unity.Netcode
                         writer.WriteValueSafe(sortedEntry.Key);
                     }
                 }
+
+                writer.WriteValueSafe(TickRate);
                 writer.WriteValueSafe(ConnectionApproval);
                 writer.WriteValueSafe(ForceSamePrefabs);
                 writer.WriteValueSafe(EnableSceneManagement);

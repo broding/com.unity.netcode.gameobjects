@@ -106,7 +106,7 @@ namespace Unity.Netcode.RuntimeTests
             var dummyNetworkObjectId = dummyNetworkObject.NetworkObjectId;
             Assert.That(dummyNetworkObjectId, Is.GreaterThan(0));
 
-            int nextFrameNumber = Time.frameCount + 2;
+            int nextFrameNumber = Time.frameCount + 4;
             yield return new WaitUntil(() => Time.frameCount >= nextFrameNumber);
 
             Assert.That(m_ServerNetworkManager.SpawnManager.SpawnedObjects.ContainsKey(dummyNetworkObjectId));
@@ -115,6 +115,9 @@ namespace Unity.Netcode.RuntimeTests
                 Assert.That(clientNetworkManager.SpawnManager.SpawnedObjects.ContainsKey(dummyNetworkObjectId));
             }
 
+            // Verifies that removing the ownership when the default (server) is already set does not cause
+            // a Key Not Found Exception
+            m_ServerNetworkManager.SpawnManager.RemoveOwnership(dummyNetworkObject);
 
             var serverObject = m_ServerNetworkManager.SpawnManager.SpawnedObjects[dummyNetworkObjectId];
             var clientObject = m_ClientNetworkManagers[0].SpawnManager.SpawnedObjects[dummyNetworkObjectId];
