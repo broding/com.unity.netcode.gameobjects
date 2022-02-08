@@ -38,6 +38,7 @@ namespace Unity.Netcode
         public double AdjustmentRatio { get; set; }
         public double LocalTime => m_TimeSec + m_CurrentLocalTimeOffset;
         public double ServerTime => m_TimeSec + m_CurrentServerTimeOffset;
+        public double LocalTimeWithoutOffset => m_TimeSec;
 
         internal double LastSyncedServerTimeSec { get; private set; }
         internal double LastSyncedRttSec { get; private set; }
