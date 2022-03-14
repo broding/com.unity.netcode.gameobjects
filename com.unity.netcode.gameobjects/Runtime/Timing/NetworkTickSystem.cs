@@ -35,7 +35,7 @@ namespace Unity.Netcode
         /// Gets invoked before every network tick.
         /// </summary>
         public event Action Tick;
-        public event Action TimeChanged;
+        public event Action<double, double> TimeChanged;
 
         /// <summary>
         /// Creates a new instance of the <see cref="NetworkTickSystem"/> class.
@@ -104,7 +104,7 @@ namespace Unity.Netcode
             LocalTime = cacheLocalTime;
             ServerTime = cacheServerTime;
 
-            TimeChanged?.Invoke();
+            TimeChanged?.Invoke(localTimeSec, serverTimeSec);
         }
     }
 }
