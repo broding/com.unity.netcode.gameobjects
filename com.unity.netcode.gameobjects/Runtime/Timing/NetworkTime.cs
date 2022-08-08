@@ -121,7 +121,7 @@ namespace Unity.Netcode
         private void UpdateCache()
         {
             double d = m_TimeSec / m_TickInterval;
-            m_CachedTick = (int)d;
+            m_CachedTick = (int)Math.Round(d);
             // This check is needed due to double division imprecision of large numbers
             if ((d - m_CachedTick) >= 0.999999999999)
             {

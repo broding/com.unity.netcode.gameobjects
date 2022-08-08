@@ -46,6 +46,7 @@ namespace Unity.Netcode
         /// The current server time with the server time offset applied
         /// </summary>
         public double ServerTime => m_TimeSec + m_CurrentServerTimeOffset;
+        public double LocalTimeWithoutOffset => m_TimeSec;
 
         internal double LastSyncedServerTimeSec { get; private set; }
         internal double LastSyncedRttSec { get; private set; }
